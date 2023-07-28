@@ -4,13 +4,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/dportaluppi/journey-api/pkg/journey"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"strings"
-	"time"
-
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type MongoRepo struct {
@@ -34,7 +32,10 @@ func (r *MongoRepo) GetJourneys(ctx context.Context, filter *journey.Filter, sor
 
 	if !filter.Date.IsZero() {
 		findFilter["startAt"] = bson.M{"$lte": filter.Date}
-		findFilter["endAt"] = bson.M{"$gte": filter.Date}
+		findFilter["$or"] = bson.A{
+			bson.M{"endAt": bson.M{"$gte": filter.Date}},
+			bson.M{"endAt": bson.M{"$eq": nil}},
+		}
 	}
 
 	if len(filter.Audiences) > 0 {
@@ -63,12 +64,12 @@ func (r *MongoRepo) GetJourneys(ctx context.Context, filter *journey.Filter, sor
 	defer cur.Close(ctx)
 
 	for cur.Next(ctx) {
-		var journey journey.Journey
-		err := cur.Decode(&journey)
+		var j journey.Journey
+		err := cur.Decode(&j)
 		if err != nil {
 			return nil, err
 		}
-		journeys = append(journeys, journey)
+		journeys = append(journeys, j)
 	}
 
 	if err := cur.Err(); err != nil {
@@ -115,23 +116,4 @@ func (r *MongoRepo) Delete(ctx context.Context, id string) error {
 	collection := r.client.Database("mydatabase").Collection("journeys")
 	_, err := collection.DeleteOne(ctx, bson.M{"id": id})
 	return err
-}
-
-func addFilterCondition(filter bson.M, condition string, value interface{}) {
-	if value != nil && !isEmpty(value) {
-		filter[condition] = value
-	}
-}
-
-func isEmpty(value interface{}) bool {
-	switch v := value.(type) {
-	case string:
-		return v == ""
-	case time.Time:
-		return v.IsZero()
-	case []string:
-		return len(v) == 0
-	default:
-		return false
-	}
 }
