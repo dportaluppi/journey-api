@@ -1,0 +1,45 @@
+# Binarios para programas y plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Directorio de pruebas
+_test
+
+# Directorio de salida
+/dist
+
+# Los archivos de log
+*.log
+
+# Archivos de caché de construcción
+*.acn
+*.acr
+*.acs
+*.acsm
+*.aco
+*.acp
+*.acor
+*.akn
+*.cgo1.go
+*.cgo2.c
+_cgo_defun.c
+_cgo_gotypes.go
+_cgo_export.*
+
+# Dependencias de los módulos
+/vendor/
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos de JetBrains IDE (GoLand)
+.idea/
+*.iml
+
+# Archivos de Go
+*.test
+*.prof
