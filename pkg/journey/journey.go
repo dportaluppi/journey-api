@@ -56,7 +56,7 @@ type Creator interface {
 }
 
 type Updater interface {
-	UpdateJourney(ctx context.Context, id string, j *Journey) error
+	UpdateJourney(ctx context.Context, id string, j *Journey) (*Journey, error)
 }
 
 type Deleter interface {
@@ -66,7 +66,7 @@ type Deleter interface {
 type Repository interface {
 	GetJourneys(ctx context.Context, filter *Filter, sortBy string) ([]Journey, error)
 	GetByID(ctx context.Context, id string) (*Journey, error)
-	Create(ctx context.Context, j *Journey) error
-	Update(ctx context.Context, id string, j *Journey) error
+	Create(ctx context.Context, j *Journey) (*Journey, error)
+	Update(ctx context.Context, id string, j *Journey) (*Journey, error)
 	Delete(ctx context.Context, id string) error
 }

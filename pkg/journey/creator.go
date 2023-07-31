@@ -11,16 +11,11 @@ func NewCreator(repo Repository) Creator {
 }
 
 func (s *creator) CreateJourney(ctx context.Context, j *Journey) (*Journey, error) {
-	/* TODO: fixme
+	/* TODO: Fixme
 	if err := j.Validate(); err != nil {
 		return nil, err
 	}
 	*/
 
-	err := s.repo.Create(ctx, j)
-	if err != nil {
-		return nil, err
-	}
-
-	return j, nil
+	return s.repo.Create(ctx, j)
 }

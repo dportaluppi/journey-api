@@ -82,13 +82,13 @@ func (h *Handler) UpdateJourney(c *gin.Context) {
 		return
 	}
 
-	err := h.updater.UpdateJourney(c.Request.Context(), id, &j)
+	updatedJourney, err := h.updater.UpdateJourney(c.Request.Context(), id, &j)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"status": "Journey updated successfully"})
+	c.JSON(http.StatusOK, updatedJourney)
 }
 
 func (h *Handler) DeleteJourney(c *gin.Context) {

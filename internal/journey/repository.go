@@ -12,17 +12,23 @@ import (
 )
 
 type MongoRepo struct {
-	client *mongo.Client
+	client         *mongo.Client
+	databaseName   string
+	collectionName string
 }
 
 func NewMongoRepo(client *mongo.Client) *MongoRepo {
-	return &MongoRepo{client: client}
+	return &MongoRepo{
+		client:         client,
+		databaseName:   "journey_api",
+		collectionName: "account_journeys",
+	}
 }
 
 func (r *MongoRepo) GetJourneys(ctx context.Context, filter *journey.Filter, sortBy string) ([]journey.Journey, error) {
 	var journeys []journey.Journey
 
-	collection := r.client.Database("mydatabase").Collection("journeys")
+	collection := r.client.Database(r.databaseName).Collection(r.collectionName)
 
 	findFilter := bson.M{}
 
@@ -85,35 +91,50 @@ func (r *MongoRepo) GetByID(ctx context.Context, id string) (*journey.Journey, e
 	if err != nil {
 		return nil, err
 	}
-	collection := r.client.Database("mydatabase").Collection("journeys")
+	collection := r.client.Database(r.databaseName).Collection(r.collectionName)
 	err = collection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&j)
 	return &j, err
 }
 
-func (r *MongoRepo) Create(ctx context.Context, j *journey.Journey) error {
-	collection := r.client.Database("mydatabase").Collection("journeys")
+func (r *MongoRepo) Create(ctx context.Context, j *journey.Journey) (*journey.Journey, error) {
+	collection := r.client.Database(r.databaseName).Collection(r.collectionName)
 	res, err := collection.InsertOne(ctx, j)
 	if err != nil {
-		return fmt.Errorf("failed to insert document: %w", err)
+		return nil, fmt.Errorf("failed to insert document: %w", err)
 	}
 
 	objectID, ok := res.InsertedID.(primitive.ObjectID)
 	if !ok {
-		return fmt.Errorf("inserted id is not of type primitive.ObjectID")
+		return nil, fmt.Errorf("inserted id is not of type primitive.ObjectID")
 	}
 
 	j.ID = objectID
-	return nil
+
+	return j, nil
 }
 
-func (r *MongoRepo) Update(ctx context.Context, id string, j *journey.Journey) error {
-	collection := r.client.Database("mydatabase").Collection("journeys")
-	_, err := collection.UpdateOne(ctx, bson.M{"id": id}, bson.M{"$set": j})
-	return err
+func (r *MongoRepo) Update(ctx context.Context, id string, j *journey.Journey) (*journey.Journey, error) {
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+	collection := r.client.Database(r.databaseName).Collection(r.collectionName)
+	_, err = collection.UpdateOne(ctx, bson.M{"_id": objectID}, bson.M{"$set": j})
+	if err != nil {
+		return nil, err
+	}
+
+	var updatedJourney journey.Journey
+	err = collection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&updatedJourney)
+	if err != nil {
+		return nil, err
+	}
+
+	return &updatedJourney, nil
 }
 
 func (r *MongoRepo) Delete(ctx context.Context, id string) error {
-	collection := r.client.Database("mydatabase").Collection("journeys")
+	collection := r.client.Database(r.databaseName).Collection(r.collectionName)
 	_, err := collection.DeleteOne(ctx, bson.M{"id": id})
 	return err
 }
