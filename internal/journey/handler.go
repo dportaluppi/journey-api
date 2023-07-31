@@ -16,7 +16,7 @@ type Handler struct {
 	deleter journey.Deleter
 }
 
-func NewHandler(getter journey.Getter, creator journey.Creator, updater journey.Updater, deleter journey.Deleter) *Handler {
+func NewHttpHandler(getter journey.Getter, creator journey.Creator, updater journey.Updater, deleter journey.Deleter) *Handler {
 	return &Handler{getter: getter, creator: creator, updater: updater, deleter: deleter}
 }
 

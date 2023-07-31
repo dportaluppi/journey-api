@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	journeyInternal "github.com/dportaluppi/journey-api/internal/journey"
+	infra "github.com/dportaluppi/journey-api/internal/journey"
 	"github.com/dportaluppi/journey-api/pkg/journey"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -24,8 +24,8 @@ func main() {
 	}
 
 	// Initialize the journey repository, services, and handler
-	repo := journeyInternal.NewMongoRepo(client)
-	handler := journeyInternal.NewHandler(
+	repo := infra.NewMongoRepo(client)
+	handler := infra.NewHttpHandler(
 		journey.NewGetter(repo),
 		journey.NewCreator(repo),
 		journey.NewUpdater(repo),
@@ -34,7 +34,7 @@ func main() {
 
 	// Set up the HTTP server
 	r := gin.Default()
-	api := r.Group("/journeys")
+	api := r.Group("/accounts/:id/journeys")
 	api.GET("", handler.GetJourneys)
 	{
 		api.GET("/:id", handler.GetJourneyByID)
